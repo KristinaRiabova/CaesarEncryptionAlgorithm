@@ -4,4 +4,4 @@ project(CaesarEncryptionAlgorithm)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(CaesarEncryptionAlgorithm caesar.cpp
-        main1.cpp)
+        test_program.cpp)
