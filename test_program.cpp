@@ -53,6 +53,10 @@ int main() {
             resultText = decrypt(inputText, key);
             std::cout << "Decrypted Text: " << resultText << std::endl;
         }
+        std::cout << "Choice: " << choice << std::endl;
+        std::cout << "Input Text: " << inputText << std::endl;
+        std::cout << "Key: " << key << std::endl;
+        std::cout << "Result Text: " << resultText << std::endl;
     }
 
     dlclose(handle);

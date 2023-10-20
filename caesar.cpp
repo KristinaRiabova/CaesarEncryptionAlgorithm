@@ -10,9 +10,9 @@ char* encrypt(char* rawText, int key) {
         char currentChar = rawText[i];
 
         if (isupper(currentChar)) {
-            encryptedText[i] = 'A' + (currentChar - 'A' + key) % 26;
+            encryptedText[i] = 'A' + (currentChar - 'A' + key % 26 + 26) % 26;
         } else if (islower(currentChar)) {
-            encryptedText[i] = 'a' + (currentChar - 'a' + key) % 26;
+            encryptedText[i] = 'a' + (currentChar - 'a' + key % 26 + 26) % 26;
         } else {
             encryptedText[i] = currentChar;
         }
@@ -30,9 +30,9 @@ char* decrypt(char* encryptedText, int key) {
         char currentChar = encryptedText[i];
 
         if (isupper(currentChar)) {
-            decryptedText[i] = 'A' + (26 + currentChar - 'A' - key) % 26;
+            decryptedText[i] = 'A' + (26 + currentChar - 'A' - key % 26) % 26;
         } else if (islower(currentChar)) {
-            decryptedText[i] = 'a' + (26 + currentChar - 'a' - key) % 26;
+            decryptedText[i] = 'a' + (26 + currentChar - 'a' - key % 26) % 26;
         } else {
             decryptedText[i] = currentChar;
         }
@@ -42,3 +42,4 @@ char* decrypt(char* encryptedText, int key) {
     return decryptedText;
 }
 }
+
