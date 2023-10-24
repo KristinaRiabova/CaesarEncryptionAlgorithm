@@ -17,10 +17,18 @@ int main() {
         return 1;
     }
 
-    char* (*encrypt)(const char*, int) = (char* (*)(const char*, int))dlsym(handle, "encrypt");
+    char* (*encryptFunction)(const char*, int) = (char* (*)(const char*, int))dlsym(handle, "encrypt");
 
-    if (!encrypt) {
-        std::cerr << "Function not found: " << dlerror() << std::endl;
+    if (!encryptFunction) {
+        std::cerr << "Encrypt function not found: " << dlerror() << std::endl;
+        dlclose(handle);
+        return 1;
+    }
+
+    char* (*decryptFunction)(const char*, int) = (char* (*)(const char*, int))dlsym(handle, "decrypt");
+
+    if (!decryptFunction) {
+        std::cerr << "Decrypt function not found: " << dlerror() << std::endl;
         dlclose(handle);
         return 1;
     }
@@ -64,9 +72,27 @@ int main() {
             std::cout << "Enter the input file path: ";
             std::cin >> inputFilePath;
             std::cout << "Enter the output file path: ";
-            std::cin >> outputFilePath;
+            std:: cin >> outputFilePath;
             std::cout << "Enter the key: ";
             std::cin >> key;
+
+            if (std::filesystem::exists(inputFilePath)) {
+                content = reader.read(inputFilePath);
+                char* resultText;
+
+                if (operation == "encrypt") {
+                    resultText = encryptFunction(content.c_str(), key);
+                } else {
+                    resultText = decryptFunction(content.c_str(), key);
+                }
+
+                writer.write(outputFilePath, resultText);
+
+                std::cout << (operation == "encrypt" ? "Encrypted" : "Decrypted") << " Text written to " << outputFilePath << std::endl;
+                delete[] resultText; // Free memory
+            } else {
+                std::cerr << "Input file does not exist." << std::endl;
+            }
         } else if (mode == 2) {
             std::cout << "Enter the input file path: ";
             std::cin >> inputFilePath;
@@ -75,18 +101,18 @@ int main() {
 
             key = std::rand() % 26;
             std::cout << "Random Key: " << key << std::endl;
-        }
 
-        if (std::filesystem::exists(inputFilePath)) {
-            content = reader.read(inputFilePath);
-            char* resultText = encrypt(content.c_str(), key);
+            if (std::filesystem::exists(inputFilePath)) {
+                content = reader.read(inputFilePath);
+                char* resultText = encryptFunction(content.c_str(), key);
 
+                writer.write(outputFilePath, resultText);
 
-            writer.write(outputFilePath, resultText);
-
-            std::cout << "Encrypted Text written to " << outputFilePath << std::endl;
-        } else {
-            std::cerr << "Input file does not exist." << std::endl;
+                std::cout << "Encrypted Text written to " << outputFilePath << std::endl;
+                delete[] resultText; // Free memory
+            } else {
+                std::cerr << "Input file does not exist." << std::endl;
+            }
         }
     }
 
