@@ -1,7 +1,15 @@
 #include <iostream>
 #include <dlfcn.h>
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <filesystem>
+#include "FileReader.h"
+#include "FileWriter.h"
 
 int main() {
+    std::srand(std::time(0));
+
     void* handle = dlopen("/Users/kristina_mbp/CLionProjects/CaesarEncryptionAlgorithm/caesar.dylib", RTLD_LAZY);
 
     if (!handle) {
@@ -9,59 +17,80 @@ int main() {
         return 1;
     }
 
-    char* (*encrypt)(char*, int) = (char* (*)(char*, int))dlsym(handle, "encrypt");
-    char* (*decrypt)(char*, int) = (char* (*)(char*, int))dlsym(handle, "decrypt");
+    char* (*encrypt)(const char*, int) = (char* (*)(const char*, int))dlsym(handle, "encrypt");
 
-    if (!encrypt || !decrypt) {
-        std::cerr << "Functions not found: " << dlerror() << std::endl;
+    if (!encrypt) {
+        std::cerr << "Function not found: " << dlerror() << std::endl;
         dlclose(handle);
         return 1;
     }
 
+    FileReader reader;
+    FileWriter writer;
+
+    std::string content;
+
     while (true) {
-        char inputText[256];
-        int key;
-
+        int mode;
         std::cout << "Choose an option:" << std::endl;
-        std::cout << "1. Encrypt" << std::endl;
-        std::cout << "2. Decrypt" << std::endl;
+        std::cout << "1. Normal Mode" << std::endl;
+        std::cout << "2. Secret Mode" << std::endl;
         std::cout << "0. Exit" << std::endl;
-        int choice;
-        std::cin >> choice;
+        std::cin >> mode;
 
-        if (choice == 0) {
+        if (mode == 0) {
             break;
-        } else if (choice != 1 && choice != 2) {
+        } else if (mode != 1 && mode != 2) {
             std::cerr << "Invalid choice." << std::endl;
             continue;
         }
 
         std::cin.ignore();
 
-        std::cout << "Enter the input message: ";
-        std::cin.getline(inputText, sizeof(inputText));
+        std::string inputFilePath;
+        std::string outputFilePath;
+        int key = 0;
 
-        std::cout << "Enter the key: ";
-        std::cin >> key;
+        if (mode == 1) {
+            std::string operation;
+            std::cout << "Choose the type of operation (encrypt/decrypt): ";
+            std::cin >> operation;
 
-        char* resultText;
+            if (operation != "encrypt" && operation != "decrypt") {
+                std::cerr << "Invalid operation. Choose 'encrypt' or 'decrypt'." << std::endl;
+                continue;
+            }
 
-        if (choice == 1) {
-            resultText = encrypt(inputText, key);
-            std::cout << "Encrypted Text: " << resultText << std::endl;
-        } else {
-            resultText = decrypt(inputText, key);
-            std::cout << "Decrypted Text: " << resultText << std::endl;
+            std::cout << "Enter the input file path: ";
+            std::cin >> inputFilePath;
+            std::cout << "Enter the output file path: ";
+            std::cin >> outputFilePath;
+            std::cout << "Enter the key: ";
+            std::cin >> key;
+        } else if (mode == 2) {
+            std::cout << "Enter the input file path: ";
+            std::cin >> inputFilePath;
+            std::cout << "Enter the output file path: ";
+            std::cin >> outputFilePath;
+
+            key = std::rand() % 26;
+            std::cout << "Random Key: " << key << std::endl;
         }
-        std::cout << "Choice: " << choice << std::endl;
-        std::cout << "Input Text: " << inputText << std::endl;
-        std::cout << "Key: " << key << std::endl;
-        std::cout << "Result Text: " << resultText << std::endl;
+
+        if (std::filesystem::exists(inputFilePath)) {
+            content = reader.read(inputFilePath);
+            char* resultText = encrypt(content.c_str(), key);
+
+
+            writer.write(outputFilePath, resultText);
+
+            std::cout << "Encrypted Text written to " << outputFilePath << std::endl;
+        } else {
+            std::cerr << "Input file does not exist." << std::endl;
+        }
     }
 
     dlclose(handle);
 
     return 0;
 }
-
-
