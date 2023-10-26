@@ -1,12 +1,13 @@
 #ifndef FILEREADER_H
 #define FILEREADER_H
 
-#include <string>
+#include "IReader.h"
 
-class FileReader {
+class FileReader : public IReader {
 public:
-    std::string read(const std::string& filePath);
+    virtual std::string read(const std::string& filePath) override;
 };
 
 #endif
+
 

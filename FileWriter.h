@@ -1,11 +1,11 @@
 #ifndef FILEWRITER_H
 #define FILEWRITER_H
 
-#include <string>
+#include "IWriter.h"
 
-class FileWriter {
+class FileWriter : public IWriter {
 public:
-    void write(const std::string& filePath, const std::string& content);
+    virtual void write(const std::string& filePath, const std::string& content) override;
 };
 
 #endif
